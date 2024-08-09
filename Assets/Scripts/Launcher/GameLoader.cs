@@ -84,9 +84,13 @@ namespace Launcher
 
         private async void LoadResources()
         {
+            _gameLoaderSceneReferences.LoadResourcesButton.ToggleAvailability();
+            
             if (!await _resourceLoadingService.LoadResources(_gameLoaderConfig.AssetName, 
                     _launcherUILoading, _cancellationTokenSource.Token))
             {
+                _gameLoaderSceneReferences.LoadResourcesButton.ToggleAvailability();
+                
                 return;
             }
 
