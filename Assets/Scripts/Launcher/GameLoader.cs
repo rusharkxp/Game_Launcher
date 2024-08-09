@@ -93,6 +93,8 @@ namespace Launcher
                 
                 return;
             }
+            
+            _gameLoaderSceneReferences.LoadResourcesButton.ToggleAvailability();
 
             ToggleButtons();
         }
