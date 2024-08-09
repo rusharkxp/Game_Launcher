@@ -9,19 +9,20 @@ namespace Utility
 {
     public sealed class ResourceLoadingService
     {
-        public async UniTask<bool> LoadResources(string bundleName, LauncherUILoading progress)
+        public async UniTask<bool> LoadResources(string bundleName, 
+            LauncherUILoading progress, CancellationToken cancellationToken)
         {
             try
             {
                 var handle = Addressables.DownloadDependenciesAsync(bundleName);
 
-                await handle.ToUniTask(progress);
+                await handle.ToUniTask(progress, cancellationToken: cancellationToken);
                 
                 progress.Report(handle.GetDownloadStatus());
 
                 Addressables.Release(handle);
             }
-            catch
+            catch (Exception)
             {
                 progress.ReportError();
 

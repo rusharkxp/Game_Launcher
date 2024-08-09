@@ -84,7 +84,8 @@ namespace Launcher
 
         private async void LoadResources()
         {
-            if (!await _resourceLoadingService.LoadResources(_gameLoaderConfig.AssetName, _launcherUILoading))
+            if (!await _resourceLoadingService.LoadResources(_gameLoaderConfig.AssetName, 
+                    _launcherUILoading, _cancellationTokenSource.Token))
             {
                 return;
             }
