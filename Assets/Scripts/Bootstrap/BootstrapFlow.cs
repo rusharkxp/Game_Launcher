@@ -14,7 +14,7 @@ namespace Bootstrap
 
         public async void Start()
         {
-            await _sceneLoadingService.LoadScene("Launcher");
+            await _sceneLoadingService.LoadScene(RuntimeConstants.LauncherSceneName);
         }
     }
 }

@@ -1,3 +1,4 @@
+using Clicker.UI;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;

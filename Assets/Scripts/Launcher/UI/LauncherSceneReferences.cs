@@ -1,12 +1,12 @@
 using System.Collections.Generic;
+using Launcher.Utility;
 using UnityEngine;
-using Utility;
 
 namespace Launcher.UI
 {
     public class LauncherSceneReferences : MonoBehaviour
     {
-        public List<LoadConfig> Configs;
+        public List<GameLoaderConfig> Configs;
 
         public GameLoader GameLoaderPrefab;
 

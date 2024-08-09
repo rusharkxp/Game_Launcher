@@ -1,9 +1,9 @@
 using UnityEngine;
 
-namespace Utility
+namespace Launcher.Utility
 {
     [CreateAssetMenu(fileName = "Config", menuName = "Custom/Config")]
-    public class LoadConfig : ScriptableObject
+    public class GameLoaderConfig : ScriptableObject
     {
         [field: SerializeField]
         public string AssetName { get; private set; }

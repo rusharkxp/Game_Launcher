@@ -6,17 +6,22 @@ namespace Utility
     {
         public void SaveScore(int score, string path)
         {
-            File.WriteAllText(path, score.ToString());
+            if (!Directory.Exists(RuntimeConstants.SaveTemplateName))
+            {
+                Directory.CreateDirectory(RuntimeConstants.SaveTemplateName);
+            }
+
+            File.WriteAllText(RuntimeConstants.SaveTemplateName + path, score.ToString());
         }
         
         public int LoadScore(string path)
         {
-            if (!File.Exists(path))
+            if (!File.Exists(RuntimeConstants.SaveTemplateName + path))
             {
                 return 0;
             }
 
-            int.TryParse(File.ReadAllText(path), out var loadedScore);
+            int.TryParse(File.ReadAllText(RuntimeConstants.SaveTemplateName + path), out var loadedScore);
 
             return loadedScore;
         }

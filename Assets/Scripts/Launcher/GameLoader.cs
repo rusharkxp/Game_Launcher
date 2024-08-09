@@ -1,5 +1,7 @@
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using Launcher.UI;
+using Launcher.Utility;
 using UnityEngine;
 using Utility;
 using VContainer;
@@ -19,7 +21,9 @@ namespace Launcher
 
         private TransitionData _transitionData;
         
-        private LoadConfig _loadConfig;
+        private GameLoaderConfig _gameLoaderConfig;
+
+        private CancellationTokenSource _cancellationTokenSource;
         
         [Inject]
         private void Init(SceneLoadingService sceneLoadingService, 
@@ -35,9 +39,9 @@ namespace Launcher
             _transitionData = transitionData;
         }
 
-        public async void SetupGameLoader(LoadConfig loadConfig)
+        public async void SetupGameLoader(GameLoaderConfig gameLoaderConfig)
         {
-            _loadConfig = loadConfig;
+            _gameLoaderConfig = gameLoaderConfig;
             
             _gameLoaderSceneReferences.LoadResourcesButton.OnButtonClick += LoadResources;
             
@@ -45,7 +49,9 @@ namespace Launcher
 
             _gameLoaderSceneReferences.LoadGameButton.OnButtonClick += LoadGame;
 
-            _gameLoaderSceneReferences.LoadGameButton.SetButtonText(_loadConfig.AssetName);
+            _gameLoaderSceneReferences.LoadGameButton.SetButtonText(_gameLoaderConfig.AssetName);
+
+            _cancellationTokenSource = new CancellationTokenSource();
             
             await SetInitialButtonVisibility();
         }
@@ -66,7 +72,7 @@ namespace Launcher
 
         private async UniTask<bool> CheckBundle()
         {
-            if (!await _resourceLoadingService.BundleExists(_loadConfig.AssetName))
+            if (!await _resourceLoadingService.BundleExists(_gameLoaderConfig.AssetName, _cancellationTokenSource.Token))
             {
                 return false;
             }
@@ -78,7 +84,7 @@ namespace Launcher
 
         private async void LoadResources()
         {
-            if (!await _resourceLoadingService.LoadResources(_loadConfig.AssetName, _launcherUILoading))
+            if (!await _resourceLoadingService.LoadResources(_gameLoaderConfig.AssetName, _launcherUILoading))
             {
                 return;
             }
@@ -97,16 +103,17 @@ namespace Launcher
 
         private async void UnloadResources()
         {
-            await _resourceLoadingService.UnloadResources(_loadConfig.AssetName, _launcherUILoading);
+            await _resourceLoadingService.UnloadResources(_gameLoaderConfig.AssetName,
+                _launcherUILoading, _cancellationTokenSource.Token);
             
             ToggleButtons();
         }
 
         private async void LoadGame()
         {
-            _transitionData.SaveFileName = _loadConfig.SaveFileName;
+            _transitionData.SaveFileName = _gameLoaderConfig.SaveFileName;
 
-            await _sceneLoadingService.LoadScene(_loadConfig.AssetName);
+            await _sceneLoadingService.LoadScene(_gameLoaderConfig.AssetName);
         }
 
         private void OnDestroy()
@@ -116,6 +123,13 @@ namespace Launcher
             _gameLoaderSceneReferences.UnloadResourcesButton.OnButtonClick -= UnloadResources;
 
             _gameLoaderSceneReferences.LoadGameButton.OnButtonClick -= LoadGame;
+        }
+
+        private void OnApplicationQuit()
+        {
+            _cancellationTokenSource.Cancel();
+            
+            _cancellationTokenSource.Dispose();
         }
     }
 }

@@ -1,10 +1,9 @@
-using Clicker.UI;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using Utility;
 using VContainer;
 
-namespace Clicker
+namespace Clicker.UI
 {
     public class ClickerUIController : MonoBehaviour, ILoadingUnit
     {
@@ -46,7 +45,7 @@ namespace Clicker
         {
             _clickerController.SaveScore();
             
-            await _sceneLoadingService.LoadScene("Launcher");
+            await _sceneLoadingService.LoadScene(RuntimeConstants.LauncherSceneName);
         }
 
         private void UpdateScore(int score)

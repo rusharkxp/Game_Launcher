@@ -1,5 +1,7 @@
+using System;
+using System.Threading;
 using Cysharp.Threading.Tasks;
-using Launcher;
+using Launcher.UI;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 
@@ -14,19 +16,14 @@ namespace Utility
                 var handle = Addressables.DownloadDependenciesAsync(bundleName);
 
                 await handle.ToUniTask(progress);
-
-                if (handle.GetDownloadStatus().DownloadedBytes == 0)
-                {
-                    progress.Report(1f);
-                }
                 
-                progress.SetMessage($"Downloaded : {(handle.GetDownloadStatus().DownloadedBytes / 1000):F2} KB");
+                progress.Report(handle.GetDownloadStatus());
 
                 Addressables.Release(handle);
             }
             catch
             {
-                progress.Report(-1f);
+                progress.ReportError();
 
                 return false;
             }
@@ -34,29 +31,34 @@ namespace Utility
             return true;
         }
     
-        public async UniTask UnloadResources(string bundleName, LauncherUILoading launcherUILoading)
+        public async UniTask UnloadResources(string bundleName, 
+            LauncherUILoading launcherUILoading, CancellationToken cancellationToken)
         {
-            var handle = Addressables.LoadResourceLocationsAsync(bundleName);
-
-            await handle.Task;
-
-            if (handle.Status == AsyncOperationStatus.Succeeded)
+            try
             {
-                Addressables.Release(handle);
+                var handle = Addressables.LoadResourceLocationsAsync(bundleName);
 
-                Addressables.ClearDependencyCacheAsync(bundleName);
+                await handle.WithCancellation(cancellationToken);
+
+                if (handle.Status == AsyncOperationStatus.Succeeded)
+                {
+                    Addressables.Release(handle);
+
+                    Addressables.ClearDependencyCacheAsync(bundleName);
                 
-                launcherUILoading.Report(1f);
+                    launcherUILoading.Report(1f);
                 
-                launcherUILoading.SetMessage($"Successfully unloaded - { bundleName.ToLower() }");
-                
-                return;
+                    launcherUILoading.SetMessage($"Successfully unloaded - { bundleName.ToLower() }");
+                }
             }
-            
-            launcherUILoading.SetMessage($"An error occured while unloading - { bundleName.ToLower() }");
+            catch (Exception)
+            {
+                launcherUILoading.ReportError($"An error occured while unloading - { bundleName.ToLower() }");
+            }
         }
 
-        public async UniTask<bool> BundleExists(string bundleName)
+        public async UniTask<bool> BundleExists(string bundleName, 
+            CancellationToken cancellationToken)
         {
             bool bundleExists;
             
@@ -64,12 +66,12 @@ namespace Utility
             {
                 var handle = Addressables.GetDownloadSizeAsync(bundleName);
 
-                await handle.Task;
+                await handle.WithCancellation(cancellationToken);
 
                 bundleExists = handle is { Status: AsyncOperationStatus.Succeeded, Result: 0 };
 
             }
-            catch (InvalidKeyException)
+            catch (Exception)
             {
                 return false;
             }
